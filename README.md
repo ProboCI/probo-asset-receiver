@@ -10,8 +10,8 @@ assets for use in probo builds.
 ## Usage
 
  1. Create a bucket to hold assets.
- 2. Create a token that can be used to post assets into that bucket (these can be deleted as well).
- 3. Upload an asset with the upload token in a header.
+ 2. Create a token that can be used to post assets into that bucket.
+ 3. Upload an asset into a bucket with the upload token.
 
 
 ### 1. Create a bucket
