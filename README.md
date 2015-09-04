@@ -7,7 +7,7 @@ This project is designed to be used in conjunction with the corresponding CLI cl
 assets for use in probo builds. 
 
 
-## Usage (not actually working yet)
+## Usage
 
  1. Create a bucket to hold assets.
  2. Create a token that can be used to post assets into that bucket (these can be deleted as well).
