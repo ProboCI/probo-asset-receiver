@@ -55,6 +55,8 @@ loader.load(function(error, config) {
 
   config.logger = logger;
   var server = new app.lib.Server(config);
+  // TODO: Allow swapping database plugins
+  //config.storage = app.lib.plugins.database.LevelDB(config);
 
   server.start(function() {
     logger.info('Now listening on ' + config.host + ':' + config.port, { host: config.host, port: config.port });
