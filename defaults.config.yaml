@@ -1,0 +1,6 @@
+# The port to listen on.
+port: 3000
+# The directory in which to store the LevelDB database.
+databaseDataDirectory: db
+# The directory in which to store uploaded file assets.
+fileDataDirectory: files

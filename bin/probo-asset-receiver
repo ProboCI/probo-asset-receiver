@@ -1,3 +1,62 @@
 #! /usr/bin/env node
 
+var Loader = require('yaml-config-loader'),
+    bunyan = require('bunyan'),
+    yargs = require('yargs'),
+    loader = new Loader({ stopOnError: false }),
+    path = require('path')
+;
 
+var logger = bunyan.createLogger({name: "probo-asset-receiver"});
+
+var app = require('..');
+
+var yargs = yargs
+  .describe('database-data-directory', 'The directory in which to store the LevelDB database.')
+  .alias('database-data-directory', 'D')
+  .describe('file-data-directory', 'The directory in which to store uploaded file assets.')
+  .alias('file-data-directory', 'F')
+  .describe('file', 'A path to a one or more configuration files or directories.')
+  .alias('file', 'f')
+  .describe('help', 'Display help message')
+  .alias('help', 'h')
+  .describe('host', 'The host to listen on (defaults to 0.0.0.0).')
+  .alias('host', 'H')
+  .describe('port', 'The port to listen on.')
+  .alias('port', 'p')
+;
+
+var argv = yargs.argv;
+
+if (argv.help) {
+  yargs.showHelp();
+  process.exit();
+}
+
+loader.on('error', function(error) {
+  // Ignore errors due to  
+});
+
+loader.add(path.join(__dirname, '..', 'defaults.config.yaml'), { filterKeys: true });
+loader.addAndNormalizeObject(process.env);
+
+// Load any conifguration files.
+if (argv.file) {
+  var file = Array.isArray(argv.file) ? argv.file : [ argv.file ];
+}
+var i = null;
+for (i in argv.file) {
+  loader.add(argv.file[i]);
+}
+
+loader.addAndNormalizeObject(argv);
+
+loader.load(function(error, config) {
+//  console.log(argv);
+  console.log(config);
+
+  var server = new app.lib.Server(config);
+
+  server.start();
+
+});
