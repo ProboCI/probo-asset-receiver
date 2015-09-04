@@ -52,11 +52,12 @@ for (i in argv.file) {
 loader.addAndNormalizeObject(argv);
 
 loader.load(function(error, config) {
-//  console.log(argv);
-  console.log(config);
 
+  config.logger = logger;
   var server = new app.lib.Server(config);
 
-  server.start();
+  server.start(function() {
+    logger.info('Now listening on ' + config.host + ':' + config.port, { host: config.host, port: config.port });
+  });
 
 });
