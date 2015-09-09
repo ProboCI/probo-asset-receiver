@@ -39,5 +39,5 @@ The following curl command will upload our database.sql.gz file as raw binary da
 baz for later reference.
 
 ```` bash
-curl -i -XPOST --data-binary @database.sql.gz http://localhost:3000/upload/bar/baz
+curl -i -XPOST --data-binary @database.sql.gz http://localhost:3000/asset/bar/baz
 ````
