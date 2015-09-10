@@ -41,3 +41,9 @@ baz for later reference.
 ```` bash
 curl -i -XPOST --data-binary @database.sql.gz http://localhost:3000/asset/bar/baz
 ````
+
+### 4. Download the file that you uploaded
+
+```` bash
+curl -i http://localhost:3000/asset/bar/baz > baz
+````
