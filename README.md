@@ -1,5 +1,6 @@
 # Probo Asset Receiver
 [![Build Status](https://travis-ci.org/ProboCI/probo-asset-receiver.svg?branch=master)](https://travis-ci.org/ProboCI/probo-asset-receiver)
+[![Coverage Status](https://coveralls.io/repos/ProboCI/probo-asset-receiver/badge.svg?branch=master&service=github)](https://coveralls.io/github/ProboCI/probo-asset-receiver?branch=master)
 
 Allows the upload of an asset 
 
@@ -27,12 +28,16 @@ curl -XPOST -H "Content-Type: application/json" -i -d '{"some":"metadata"}' http
 
 In order to upload assets to a bucket, you'll need an upload token. This is a shared secret (essentially like an API key)
 that allows you to upload assets to a particular bucket.  You can create any number of these tokens per bucket and in
-the event that one is compromised you can easily delete the token.
 
 ```` bash
 curl -i -XPOST http://localhost:3000/buckets/foo/token/bar
 ````
 
+To delete a token:
+
+```` bash
+curl -i -XDELETE http://localhost:3000/buckets/foo/token/bar
+````
 
 ### 3. Use the super secret token to upload a file
 
