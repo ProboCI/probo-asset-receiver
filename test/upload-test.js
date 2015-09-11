@@ -17,11 +17,6 @@ var getOptions = function(path, method) {
  var options = {
     url: 'http://localhost:' + port + path,
     json: true,
-    logger: bunyan.createLogger({
-      name: 'tests',
-      level: 'fatal',
-      stream: fs.createWriteStream('/dev/null'),
-    }),
   };
   return options;
 };
@@ -34,6 +29,13 @@ describe('http-api', function() {
       fileDataDirectory: tempDir,
       host: '0.0.0.0',
       levelDB: memdown,
+      encryptionCipher: 'aes-256-cbc',
+      encryptionPassword: 'super-secret',
+      logger: bunyan.createLogger({
+        name: 'tests',
+        level: 'fatal',
+        stream: fs.createWriteStream('/dev/null'),
+      }),
     };
     server = new Server(options);
     var listener = server.start(function() {

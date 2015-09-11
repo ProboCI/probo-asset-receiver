@@ -6,3 +6,7 @@ port: 3000
 databaseDataDirectory: db
 # The directory in which to store uploaded file assets.
 fileDataDirectory: files
+# Determines the cipher used to encrypt the assets.
+# See https://www.openssl.org/docs/manmaster/apps/ciphers.html for options.
+encryptionCipher: 'aes-256-cbc'
+encryptionPassword: SECRET
