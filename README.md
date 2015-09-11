@@ -1,4 +1,5 @@
 # Probo Asset Receiver
+[![Build Status](https://travis-ci.org/ProboCI/probo-asset-receiver.svg?branch=master)](https://travis-ci.org/ProboCI/probo-asset-receiver)
 
 Allows the upload of an asset 
 
