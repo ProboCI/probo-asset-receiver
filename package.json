@@ -3,13 +3,17 @@
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
+  "repository": "https://github.com/ProboCI/probo-asset-receiver.git",
   "scripts": {
     "test": "./node_modules/.bin/mocha",
-    "watch": "./node_modules/.bin/mocha -w"
+    "watch": "./node_modules/.bin/mocha -w",
+    "coverage": "istanbul cover ./node_modules/.bin/_mocha"
   },
   "author": "",
   "license": "ISC",
   "devDependencies": {
+    "coveralls": "^2.11.4",
+    "istanbul": "^0.3.19",
     "memdown": "^1.0.0",
     "mocha": "^2.3.0",
     "should": "^7.1.0"
