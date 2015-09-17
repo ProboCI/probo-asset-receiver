@@ -16,8 +16,8 @@ var yargs = yargs
   .alias('database-data-directory', 'D')
   .describe('file-data-directory', 'The directory in which to store uploaded file assets.')
   .alias('file-data-directory', 'F')
-  .describe('file', 'A path to a one or more configuration files or directories.')
-  .alias('file', 'f')
+  .describe('config', 'A path to a one or more configuration files or directories.')
+  .alias('config', 'c')
   .describe('help', 'Display help message')
   .alias('help', 'h')
   .describe('host', 'The host to listen on (defaults to 0.0.0.0).')
@@ -40,13 +40,13 @@ loader.on('error', function(error) {
 loader.add(path.join(__dirname, '..', 'defaults.config.yaml'), { filterKeys: true });
 loader.addAndNormalizeObject(process.env);
 
-// Load any conifguration files.
-if (argv.file) {
-  var file = Array.isArray(argv.file) ? argv.file : [ argv.file ];
-}
-var i = null;
-for (i in argv.file) {
-  loader.add(argv.file[i]);
+if (argv.config) {
+  if (typeof argv.config === 'string') {
+    argv.config = [ argv.config ];
+  }
+  for (var i in argv.config) {
+    loader.add(path.resolve(argv.config[i]));
+  }
 }
 
 loader.addAndNormalizeObject(argv);
