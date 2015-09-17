@@ -34,7 +34,7 @@ if (argv.help) {
 }
 
 loader.on('error', function(error) {
-  // Ignore errors due to  
+  // Ignore errors due to missing files.
 });
 
 loader.add(path.join(__dirname, '..', 'defaults.config.yaml'), { filterKeys: true });
