@@ -25,8 +25,14 @@ describe('http-api', function() {
   before(function(done) {
     tempDir = path.join(os.tmpdir(), 'probo-asset-receiver-' + Date.now());
     var options = {
-      databaseDataDirectory: tempDir,
-      fileDataDirectory: tempDir,
+      fileStoragePlugin: 'LocalFiles',
+      fileStorageConfig: {
+        fileDataDirectory: tempDir,
+      },
+      databasePlugin: 'LevelDB',
+      databaseConfig: {
+        databaseDataDirectory: tempDir,
+      },
       host: '0.0.0.0',
       levelDB: memdown,
       encryptionCipher: 'aes-256-cbc',
