@@ -33,9 +33,9 @@ describe('http-api', function() {
       databasePlugin: 'LevelDB',
       databaseConfig: {
         databaseDataDirectory: tempDir,
+        levelDB: memdown,
       },
       host: '0.0.0.0',
-      levelDB: memdown,
       encryptionCipher: 'aes-256-cbc',
       encryptionPassword: 'super-secret',
       logger: bunyan.createLogger({
