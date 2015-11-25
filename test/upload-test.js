@@ -7,7 +7,6 @@ var request = require('request');
 var memdown = require('memdown');
 var bunyan = require('bunyan');
 var fs = require('fs');
-
 var supertest = require('supertest');
 
 // extend supertest Test class to have a .token method so that we can chain
@@ -20,11 +19,18 @@ require('supertest/lib/test').prototype.token = function(token) {
 var app = require('..');
 var Server = app.lib.Server;
 
+
 var createServer = function(options) {
   var tempDir = path.join(os.tmpdir(), 'probo-asset-receiver-' + Date.now());
   var defaultOptions = {
-    databaseDataDirectory: tempDir,
-    fileDataDirectory: tempDir,
+    databasePlugin: 'LevelDB',
+    databaseConfig: {
+      databaseDataDirectory: tempDir,
+    },
+    fileStoragePlugin: 'LocalFiles',
+    fileStorageConfig: {
+      fileDataDirectory: tempDir,
+    },
     host: '0.0.0.0',
     levelDB: memdown,
     encryptionCipher: 'aes-256-cbc',
@@ -45,6 +51,7 @@ var createServer = function(options) {
 
   return new Server(defaultOptions);
 };
+
 
 describe('http-auth', function() {
   // create a server with auth enabled
@@ -111,18 +118,9 @@ describe('http-api', function() {
   var port = null;
 
   var getOptions = function(path, method) {
-    var tempDir = path.join(os.tmpdir(), 'probo-asset-receiver-' + Date.now());
     var options = {
       url: 'http://localhost:' + port + path,
       json: true,
-      fileStoragePlugin: 'LocalFiles',
-      fileStorageConfig: {
-        fileDataDirectory: tempDir,
-      },
-      databasePlugin: 'LevelDB',
-      databaseConfig: {
-        databaseDataDirectory: tempDir,
-      },
     };
     return options;
   };
