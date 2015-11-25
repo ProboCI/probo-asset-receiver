@@ -111,13 +111,21 @@ describe('http-api', function() {
   var port = null;
 
   var getOptions = function(path, method) {
+    var tempDir = path.join(os.tmpdir(), 'probo-asset-receiver-' + Date.now());
     var options = {
       url: 'http://localhost:' + port + path,
       json: true,
+      fileStoragePlugin: 'LocalFiles',
+      fileStorageConfig: {
+        fileDataDirectory: tempDir,
+      },
+      databasePlugin: 'LevelDB',
+      databaseConfig: {
+        databaseDataDirectory: tempDir,
+      },
     };
     return options;
   };
-
 
   before(function(done) {
     server = createServer();
