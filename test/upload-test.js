@@ -26,7 +26,7 @@ describe('http-api', function() {
   before(function(done) {
     tempDir = path.join(os.tmpdir(), 'probo-asset-receiver-' + Date.now());
     var options = {
-      fileStoragePlugin: 'LocalFiles',
+      fileStoragePlugin: 'awsS3Storage',
       fileStorageConfig: {
         fileDataDirectory: tempDir,
       },

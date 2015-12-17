@@ -13,12 +13,14 @@
   "author": "",
   "license": "ISC",
   "devDependencies": {
+    "aws-sdk": "^2.2.25",
     "coveralls": "^2.11.4",
     "eslint": "^1.10.1",
     "istanbul": "^0.3.19",
     "memdown": "^1.0.0",
     "mocha": "^2.3.0",
-    "should": "^7.1.0"
+    "should": "^7.1.0",
+    "through2": "^2.0.0"
   },
   "dependencies": {
     "biguint-format": "^1.0.0",
