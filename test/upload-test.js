@@ -28,7 +28,7 @@ var createServer = function(options) {
       databaseDataDirectory: tempDir,
       levelDB: memdown,
     },
-    fileStoragePlugin: 'LocalFiles',
+    fileStoragePlugin: 'awsS3Storage',
     fileStorageConfig: {
       fileDataDirectory: tempDir,
     },
