@@ -1,0 +1,6 @@
+# Configuration for the AwsS3Storage plugin
+awsS3StoragePlugin: AwsS3Storage
+awsS3StorageConfig:
+  bucket: proboci
+  awsAccessKeyId: 'Access Key'
+  awsSecretAccessKey: 'Secret Access Key'
