@@ -6,11 +6,8 @@ port: 3000
 databasePlugin: LevelDB
 databaseConfig:
   databaseDataDirectory: db
-fileStoragePlugin: awsS3Storage
+fileStoragePlugin: LocalFiles
 fileStorageConfig:
-  bucket: proboci
-  awsAccessKeyId: 'AWS Access Key Id'
-  awsSecretAccessKey: 'AWS Secret Access Key'
   # The directory in which to store uploaded file assets.
   fileDataDirectory: files
 # Determines the cipher used to encrypt the assets.
