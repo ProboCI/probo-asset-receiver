@@ -28,17 +28,12 @@ curl -H "Authentication: Bearer token1" http://localhost:3000/buckets/foo
 
 ## Usage
 
- 1. Add Amazon S3 credentials.
- 2. Create a bucket to hold assets.
- 3. Create a token that can be used to post assets into that bucket.
- 4. Upload an asset into a bucket with the upload token.
+ 1. Create a bucket to hold assets.
+ 2. Create a token that can be used to post assets into that bucket.
+ 3. Upload an asset into a bucket with the upload token.
 
-### 1. Add Amazon S3 credentials defaults.config.yaml
-Replace the following with [Amazon S3 storage credentials](http://docs.aws.amazon.com/general/latest/gr/aws-security-credentials.html). 
-   * awsAccessKeyId: 'AWS Access Key Id'
-   * awsSecretAccessKey: 'AWS Secret Access Key'  
 
-### 2. Create a bucket
+### 1. Create a bucket
 
 The following will create a bucket called `foo` and store the associated metadata key `some` with value `metadata`.
 
@@ -46,7 +41,7 @@ The following will create a bucket called `foo` and store the associated metadat
 curl -XPOST -H "Content-Type: application/json" -i -d '{"some":"metadata"}' http://localhost:3000/buckets/foo
 ````
 
-### 3. Create a token that can be used to post assets into that bucket
+### 2. Create a token that can be used to post assets into that bucket
 
 In order to upload assets to a bucket, you'll need an upload token. This is a shared secret (essentially like an API key)
 that allows you to upload assets to a particular bucket.  You can create any number of these tokens per bucket and in
@@ -61,7 +56,7 @@ To delete a token:
 curl -i -XDELETE http://localhost:3000/buckets/foo/token/bar
 ````
 
-### 4. Use the super secret token to upload a file
+### 3. Use the super secret token to upload a file
 
 The following curl command will upload our database.sql.gz file as raw binary data and name the asset
 baz for later reference.
@@ -70,8 +65,15 @@ baz for later reference.
 curl -i -XPOST --data-binary @database.sql.gz http://localhost:3000/asset/bar/baz
 ````
 
-### 5. Download the file that you uploaded
+### 4. Download the file that you uploaded
 
 ```` bash
 curl -i http://localhost:3000/asset/bar/baz > baz
 ````
+
+### 5. Using Amazon S3 to storage your assets
+You can use [Amazon S3 storage](https://aws.amazon.com/s3/) to store your assets by using the AwsS3Storage Plugin. There is the example config file [`AwsS3Storage.config.yaml`](https://github.com/ProboCI/probo-asset-receiver/blob/file-storage-s3-plugin/AwsS3Storage.config.yaml) in this repository. You will need to provide your own access keys and bucket name from your Amazon account. You will want to move your config file outside of your git repo or add it to your .gitignore file. You can then use the config argument `-c` to tell the Probo Asset Reciever to override the defaults.config.yaml file with your own configuration file.
+Example:
+```
+./bin/probo-asset-receiver -c path/to/config-file/awsS3Storage.config.yaml
+```

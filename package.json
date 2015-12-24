@@ -13,7 +13,6 @@
   "author": "",
   "license": "ISC",
   "devDependencies": {
-    "aws-sdk": "^2.2.25",
     "coveralls": "^2.11.4",
     "eslint": "^1.10.1",
     "istanbul": "^0.3.19",
@@ -21,9 +20,10 @@
     "mocha": "^2.3.0",
     "should": "^7.1.0",
     "supertest": "^1.1.0",
-    "through2": "^2.0.0"
+    "should": "^7.1.0"
   },
   "dependencies": {
+    "aws-sdk": "^2.2.25",
     "biguint-format": "^1.0.0",
     "body-parser": "^1.13.3",
     "bunyan": "^1.5.1",
