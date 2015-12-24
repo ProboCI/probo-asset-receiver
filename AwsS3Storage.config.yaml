@@ -1,6 +1,10 @@
-# Configuration for the AwsS3Storage plugin
-awsS3StoragePlugin: AwsS3Storage
-awsS3StorageConfig:
-  bucket: proboci
-  awsAccessKeyId: 'Access Key'
-  awsSecretAccessKey: 'Secret Access Key'
+#Amazon S3Storage configuration file example.
+# The host to listen on.
+host: 0.0.0.0
+# The port to listen on.
+port: 3000
+fileStoragePlugin: AwsS3Storage
+fileStorageConfig:
+  fileDataDirectory: 'Your Amazon Bucket Name'
+  awsAccessKeyId: 'Your AwsS3 Access Key'
+  awsSecretAccessKey: 'Your AwsS3 Secret Access key'
