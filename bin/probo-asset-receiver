@@ -52,7 +52,6 @@ if (argv.config) {
 loader.addAndNormalizeObject(argv);
 
 loader.load(function(error, config) {
-
   config.logger = logger;
   var server = new app.lib.Server(config);
 
