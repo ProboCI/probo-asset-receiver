@@ -10,3 +10,6 @@ fileDataDirectory: files
 # See https://www.openssl.org/docs/manmaster/apps/ciphers.html for options.
 encryptionCipher: 'aes-256-cbc'
 encryptionPassword: SECRET
+
+# API tokens for creating all routes except asset upload (disabled by default)
+tokens: null

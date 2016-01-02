@@ -6,42 +6,123 @@ var should = require('should'),
     bunyan = require('bunyan'),
     fs = require('fs');
 
+var supertest = require('supertest');
+
+// extend supertest Test class to have a .token method so that we can chain
+// adding an authorization Bearer token easily
+require('supertest/lib/test').prototype.token = function(token) {
+  this.set('Authorization', 'Bearer ' + token);
+  return this;
+};
+
 var app = require('..');
 var Server = app.lib.Server;
 
-var server = null;
-var tempDir = null;
-var port = null;
-
-var getOptions = function(path, method) {
- var options = {
-    url: 'http://localhost:' + port + path,
-    json: true,
+var createServer = function(options) {
+  var tempDir = path.join(os.tmpdir(), 'probo-asset-receiver-' + Date.now());
+  var defaultOptions = {
+    databaseDataDirectory: tempDir,
+    fileDataDirectory: tempDir,
+    host: '0.0.0.0',
+    levelDB: memdown,
+    encryptionCipher: 'aes-256-cbc',
+    encryptionPassword: 'super-secret',
+    logger: bunyan.createLogger({
+      name: 'tests',
+      level: 'fatal',
+      stream: fs.createWriteStream('/dev/null'),
+    }),
   };
-  return options;
+
+  options = options || {};
+  for (var i in options) {
+    if (options.hasOwnProperty(i)) {
+      defaultOptions[i] = options[i];
+    }
+  }
+
+  return new Server(defaultOptions);
 };
 
+describe('http-auth', function() {
+  // create a server with auth enabled
+  var server = createServer({tokens: ['tik', 'tok']});
+
+  var http = function() {
+    return supertest(server.app);
+  };
+
+  before('start server', function(done) {
+    server.start(done);
+  });
+
+  describe('routes require authentication', function(done) {
+    it('GET /buckets (no auth token)', function(done) {
+      http().get('/buckets').expect(401, done);
+    });
+
+    it('GET /buckets (invalid token)', function(done) {
+      http().get('/buckets').token('blah').expect(401, done);
+    });
+
+    it('GET /buckets/:bucket', function(done) {
+      http().get('/buckets/:bucket').expect(401, done);
+    });
+
+    it('POST /buckets/:bucket', function(done) {
+      http().post('/buckets/:bucket').expect(401, done);
+    });
+
+    it('POST /buckets/:bucket/token/:token', function(done) {
+      http().post('/buckets/:bucket/token/:token').expect(401, done);
+    });
+
+    it('DELETE /buckets/:bucket/token/:token', function(done) {
+      http().delete('/buckets/:bucket/token/:token').expect(401, done);
+    });
+
+    it('GET /buckets/:bucket/token', function(done) {
+      http().get('/buckets/:bucket/token').expect(401, done);
+    });
+
+    it('GET /asset/:bucket/:assetName', function(done) {
+      http().get('/asset/:bucket/:assetName').expect(401, done);
+    });
+  });
+
+  describe('authenticated route accepts valide auth token ', function() {
+    it('GET /buckets', function(done) {
+      http().get('/buckets').token('tik').expect(200, done);
+    });
+  });
+
+  describe('routes that do NOT require authentication', function() {
+    it('POST /asset/:token/:assetName', function(done) {
+      // a 403 error means asset token is invalid, not an authentication token
+      http().post('/asset/:token/:assetName').expect(403, done);
+    });
+  });
+});
+
 describe('http-api', function() {
-  before(function(done) {
-    tempDir = path.join(os.tmpdir(), 'probo-asset-receiver-' + Date.now());
+  var server = null;
+  var port = null;
+
+  var getOptions = function(path, method) {
     var options = {
-      databaseDataDirectory: tempDir,
-      fileDataDirectory: tempDir,
-      host: '0.0.0.0',
-      levelDB: memdown,
-      encryptionCipher: 'aes-256-cbc',
-      encryptionPassword: 'super-secret',
-      logger: bunyan.createLogger({
-        name: 'tests',
-        level: 'fatal',
-        stream: fs.createWriteStream('/dev/null'),
-      }),
+      url: 'http://localhost:' + port + path,
+      json: true,
     };
-    server = new Server(options);
+    return options;
+  };
+
+
+  before(function(done) {
+    server = createServer();
     var listener = server.start(function() {
       port = listener.address().port;
       done();
-    })
+    });
   });
   after(function(done) {
     server.stop(done);
