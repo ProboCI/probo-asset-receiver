@@ -1,32 +1,32 @@
 #! /usr/bin/env node
+/* eslint no-process-exit: 0, lines-around-comment: 0 */
+'use strict';
 
-var Loader = require('yaml-config-loader'),
-    bunyan = require('bunyan'),
-    yargs = require('yargs'),
-    loader = new Loader({ stopOnError: false }),
-    path = require('path')
-;
+var Loader = require('yaml-config-loader');
+var bunyan = require('bunyan');
+var yargs = require('yargs');
+var loader = new Loader({stopOnError: false});
+var path = require('path');
 
-var logger = bunyan.createLogger({name: "probo-asset-receiver"});
+var logger = bunyan.createLogger({name: 'probo-asset-receiver'});
 
 var app = require('..');
 
-var yargs = yargs
-  .describe('database-data-directory', 'The directory in which to store the LevelDB database.')
-  .alias('database-data-directory', 'D')
-  .describe('file-data-directory', 'The directory in which to store uploaded file assets.')
-  .alias('file-data-directory', 'F')
-  .describe('config', 'A path to a one or more configuration files or directories.')
-  .alias('config', 'c')
-  .describe('help', 'Display help message')
-  .alias('help', 'h')
-  .describe('host', 'The host to listen on (defaults to 0.0.0.0).')
-  .alias('host', 'H')
-  .describe('port', 'The port to listen on.')
-  .alias('port', 'p')
+var argv = yargs
+    .describe('database-data-directory', 'The directory in which to store the LevelDB database.')
+    .alias('database-data-directory', 'D')
+    .describe('file-data-directory', 'The directory in which to store uploaded file assets.')
+    .alias('file-data-directory', 'F')
+    .describe('config', 'A path to a one or more configuration files or directories.')
+    .alias('config', 'c')
+    .describe('help', 'Display help message')
+    .alias('help', 'h')
+    .describe('host', 'The host to listen on (defaults to 0.0.0.0).')
+    .alias('host', 'H')
+    .describe('port', 'The port to listen on.')
+    .alias('port', 'p')
+    .argv
 ;
-
-var argv = yargs.argv;
 
 if (argv.help) {
   yargs.showHelp();
@@ -37,15 +37,17 @@ loader.on('error', function(error) {
   // Ignore errors due to missing files.
 });
 
-loader.add(path.join(__dirname, '..', 'defaults.config.yaml'), { filterKeys: true });
+loader.add(path.join(__dirname, '..', 'defaults.config.yaml'), {filterKeys: true});
 loader.addAndNormalizeObject(process.env);
 
 if (argv.config) {
   if (typeof argv.config === 'string') {
-    argv.config = [ argv.config ];
+    argv.config = [argv.config];
   }
   for (var i in argv.config) {
-    loader.add(path.resolve(argv.config[i]));
+    if (argv.config.hasOwnProperty(i)) {
+      loader.add(path.resolve(argv.config[i]));
+    }
   }
 }
 
@@ -56,10 +58,10 @@ loader.load(function(error, config) {
   config.logger = logger;
   var server = new app.lib.Server(config);
   // TODO: Allow swapping database plugins
-  //config.storage = app.lib.plugins.database.LevelDB(config);
+  // config.storage = app.lib.plugins.database.LevelDB(config);
 
   server.start(function() {
-    logger.info('Now listening on ' + config.host + ':' + config.port, { host: config.host, port: config.port });
+    logger.info('Now listening on ' + config.host + ':' + config.port, {host: config.host, port: config.port});
   });
 
 });

@@ -5,3 +5,4 @@ files
 .DS_Store
 coverage
 npm-debug.log
+*~
