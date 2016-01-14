@@ -1,10 +1,11 @@
-var should = require('should'),
-    os = require('os'),
-    path = require('path'),
-    request = require('request'),
-    memdown = require('memdown'),
-    bunyan = require('bunyan'),
-    fs = require('fs');
+'use strict';
+var should = require('should');
+var os = require('os');
+var path = require('path');
+var request = require('request');
+var memdown = require('memdown');
+var bunyan = require('bunyan');
+var fs = require('fs');
 
 var app = require('..');
 var Server = app.lib.Server;
@@ -14,7 +15,7 @@ var tempDir = null;
 var port = null;
 
 var getOptions = function(path, method) {
- var options = {
+  var options = {
     url: 'http://localhost:' + port + path,
     json: true,
   };
@@ -25,10 +26,16 @@ describe('http-api', function() {
   before(function(done) {
     tempDir = path.join(os.tmpdir(), 'probo-asset-receiver-' + Date.now());
     var options = {
-      databaseDataDirectory: tempDir,
-      fileDataDirectory: tempDir,
+      fileStoragePlugin: 'LocalFiles',
+      fileStorageConfig: {
+        fileDataDirectory: tempDir,
+      },
+      databasePlugin: 'LevelDB',
+      databaseConfig: {
+        databaseDataDirectory: tempDir,
+        levelDB: memdown,
+      },
       host: '0.0.0.0',
-      levelDB: memdown,
       encryptionCipher: 'aes-256-cbc',
       encryptionPassword: 'super-secret',
       logger: bunyan.createLogger({
@@ -41,7 +48,7 @@ describe('http-api', function() {
     var listener = server.start(function() {
       port = listener.address().port;
       done();
-    })
+    });
   });
   after(function(done) {
     server.stop(done);
@@ -176,7 +183,7 @@ describe('http-api', function() {
       .on('response', function(response) {
         response.statusCode.should.equal(201);
         done();
-      })
+      });
       fs.createReadStream(__dirname + '/../package.json').pipe(submitStream);
     });
     it('should receive a file\'s contents  once uplaoded', function(done) {

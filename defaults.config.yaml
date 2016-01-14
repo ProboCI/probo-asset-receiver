@@ -3,9 +3,13 @@ host: 0.0.0.0
 # The port to listen on.
 port: 3000
 # The directory in which to store the LevelDB database.
-databaseDataDirectory: db
-# The directory in which to store uploaded file assets.
-fileDataDirectory: files
+databasePlugin: LevelDB
+databaseConfig:
+  databaseDataDirectory: db
+fileStoragePlugin: LocalFiles
+fileStorageConfig:
+  # The directory in which to store uploaded file assets.
+  fileDataDirectory: files
 # Determines the cipher used to encrypt the assets.
 # See https://www.openssl.org/docs/manmaster/apps/ciphers.html for options.
 encryptionCipher: 'aes-256-cbc'

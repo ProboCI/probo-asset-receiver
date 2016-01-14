@@ -53,3 +53,10 @@ curl -i -XPOST --data-binary @database.sql.gz http://localhost:3000/asset/bar/ba
 ```` bash
 curl -i http://localhost:3000/asset/bar/baz > baz
 ````
+
+### 5. Using Amazon S3 to storage your assets
+You can use [Amazon S3 storage](https://aws.amazon.com/s3/) to store your assets by using the AwsS3Storage Plugin. There is the example config file [`AwsS3Storage.config.yaml`](https://github.com/ProboCI/probo-asset-receiver/blob/file-storage-s3-plugin/AwsS3Storage.config.yaml) in this repository. You will need to provide your own access keys and bucket name from your Amazon account. You will want to move your config file outside of your git repo or add it to your .gitignore file. You can then use the config argument `-c` to tell the Probo Asset Reciever to override the defaults.config.yaml file with your own configuration file.
+Example:
+```
+./bin/probo-asset-receiver -c path/to/config-file/awsS3Storage.config.yaml
+```
