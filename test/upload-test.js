@@ -8,6 +8,10 @@ var memdown = require('memdown');
 var bunyan = require('bunyan');
 var fs = require('fs');
 var supertest = require('supertest');
+var zlib = require('zlib');
+
+var app = require('..');
+var Server = app.lib.Server;
 
 // extend supertest Test class to have a .token method so that we can chain
 // adding an authorization Bearer token easily
@@ -15,10 +19,6 @@ require('supertest/lib/test').prototype.token = function(token) {
   this.set('Authorization', 'Bearer ' + token);
   return this;
 };
-
-var app = require('..');
-var Server = app.lib.Server;
-
 
 var createServer = function(options) {
   var tempDir = path.join(os.tmpdir(), 'probo-asset-receiver-' + Date.now());
@@ -253,6 +253,7 @@ describe('http-api', function() {
     });
   });
   describe('upload asset', function() {
+    var uploadedAssetId = null;
     it('should receive a 403 if an invalid token is used for an upload', function(done) {
       request.post(getOptions('/asset/bazr/foo.json'), function(error, response, body) {
         response.statusCode.should.equal(403);
@@ -260,19 +261,33 @@ describe('http-api', function() {
         done();
       });
     });
-    it('should receive a file asset uploaded wiht a token and serve the file back', function(done) {
-      var submitStream = request.post(getOptions('/asset/baz/package.json'))
-      .on('response', function(response) {
-        response.statusCode.should.equal(201);
+    it('should receive a file asset uploaded with a token and serve the file back', function(done) {
+      var options = getOptions('/asset/baz/package.json');
+      var submitStream = request.post(options, function(err, res, body) {
+        uploadedAssetId = body;
+        res.statusCode.should.equal(201);
         done();
       });
       fs.createReadStream(__dirname + '/../package.json').pipe(submitStream);
     });
-    it('should receive a file\'s contents  once uplaoded', function(done) {
+    it('should receive a file\'s contents once uploaded', function(done) {
       var options = getOptions('/asset/foo/package.json');
       options.json = false;
       request(options, function(error, response, body) {
         body.should.equal(fs.readFileSync(__dirname + '/../package.json').toString('utf8'));
+        done();
+      });
+    });
+    it('should receive a file\'s rawSize and zippedSize size once uploaded', function(done) {
+      var options = getOptions('/buckets/foo!!package.json!!' + uploadedAssetId);
+      request(options, function(error, response, body) {
+        var filePath = __dirname + '/../package.json';
+        var content = fs.readFileSync(filePath, 'utf8');
+        var fileStat = fs.statSync(filePath);
+
+        body.zippedSize.should.equal(zlib.gzipSync(content).length);
+        body.rawSize.should.equal(fileStat.size);
+
         done();
       });
     });
