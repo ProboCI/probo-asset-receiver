@@ -1,0 +1,119 @@
+#! /usr/bin/env node
+'use strict';
+
+var Loader = require('yaml-config-loader');
+var yargs = require('yargs');
+var path = require('path');
+var bunyan = require('bunyan');
+var FlakeId = require('flake-idgen');
+var through2 = require('through2');
+var zlib = require('zlib');
+var crypto = require('crypto');
+var fs = require('fs');
+
+var plugins = require('../lib/plugins');
+
+var loader = new Loader({stopOnError: false});
+var logger = bunyan.createLogger({name: 'probo-asset-fixer'});
+
+var cliargs = yargs
+  .describe('config', 'A path to a one or more configuration files or directories.')
+  .alias('config', 'c');
+
+var argv = cliargs.argv;
+
+if (argv.help) {
+  cliargs.showHelp();
+  throw new Error();
+}
+
+loader.on('error', function(error) {
+  // Ignore errors due to missing files.
+});
+
+loader.add(path.join(__dirname, '..', 'defaults.config.yaml'), {filterKeys: true});
+loader.addAndNormalizeObject(process.env);
+
+if (argv.config) {
+  if (typeof argv.config === 'string') {
+    argv.config = [argv.config];
+  }
+  argv.config.forEach(function(arg) {
+    loader.add(path.resolve(arg));
+  });
+}
+
+loader.addAndNormalizeObject(argv);
+
+loader.load(function(error, config) {
+  console.log(config);
+  config = config || {};
+  config.encryptionCipher = config.encryptionCipher || 'aes-256-cbc';
+  config.encryptionPassword = config.encryptionPassword || 'SECRET';
+  config.databasePlugin = 'LevelDB';
+  config.fileStorageConfig = config.fileStorageConfig || {};
+  var database = new plugins.database[config.databasePlugin](config.databaseConfig, logger);
+  var fileStorage = new plugins.fileStorage.LocalFiles(config.fileStorageConfig);
+  var awsFileStorage = new plugins.fileStorage.AwsS3Storage(config.s3FileStorageConfig);
+
+  // Used to generate IDs for asset uploads.
+  var flakeIdGen = new FlakeId();
+  var dbStream = database.listAssets();
+
+  dbStream.pipe(through2.obj(function(data, enc, cb) {
+    console.log(data);
+    console.log('====');
+    database.getBucketByAssetId(data.assetId, function(err, bucketId) {
+      console.log('++++++++++++++++++', bucketId);
+    });
+    //var w = fs.createWriteStream('/home/vagrant/' + data.assetId, {encoding: 'binary'});
+    var zippedBytes = 0;
+    var rawBytes = 0;
+    var fileStream = fileStorage.createReadStream(data.assetId);
+    fileStream.on('error', function(err) {
+      console.log('File not found... Moving on.');
+    });
+    fileStream.pipe(crypto.createDecipher(config.encryptionCipher, config.encryptionPassword))
+      .pipe(through2(function(data, enc, cb) {
+        zippedBytes += data.length;
+        this.push(data);
+      }))
+      .pipe(zlib.createGunzip())
+      .pipe(through2(function(data, enc, cb) {
+        rawBytes += data.length;
+        this.push(data);
+      }))
+      .pipe(crypto.createCipher(config.encryptionCipher, config.encryptionPassword + data.assetId))
+      .pipe(zlib.createGzip())
+      // TODO S3 stuff.
+      .on('close', function() {
+        /*metadata.rawSize = rawBytes;
+        metadata.zippedSize = zippedBytes;
+        self.database.updateAsset(bucket, assetName, assetId, metadata, function(error) {
+          if (error) {
+            res.status(400).send(error.message);
+            return console.error(error);
+          }
+          self.logger.info('Asset ' + assetName + ' uploaded to bucket bucket ' + bucket + ' using token ' + token, {bucket: bucket, token: token, assetName: assetName});
+          res.end(assetId);
+        });*/
+      });
+
+
+      //.pipe(w);
+
+    dbStream.on('error', function(err) {
+      cb(err);
+    });
+    cb();
+  }));
+  // fileStorage.createReadStream(assetId)
+  //  .pipe(crypto.createDecipher(self.options.encryptionCipher, self.options.encryptionPassword))
+  //  .pipe(zlib.createGunzip())
+
+});
+
+
+function runPipes() {
+
+}
