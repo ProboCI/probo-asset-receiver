@@ -5,13 +5,13 @@ var Loader = require('yaml-config-loader');
 var yargs = require('yargs');
 var path = require('path');
 var bunyan = require('bunyan');
-var FlakeId = require('flake-idgen');
 var through2 = require('through2');
 var zlib = require('zlib');
 var crypto = require('crypto');
 var fs = require('fs');
 
 var plugins = require('../lib/plugins');
+var ByteCounter = require('../lib/ByteCounter');
 
 var loader = new Loader({stopOnError: false});
 var logger = bunyan.createLogger({name: 'probo-asset-fixer'});
@@ -46,74 +46,59 @@ if (argv.config) {
 loader.addAndNormalizeObject(argv);
 
 loader.load(function(error, config) {
-  console.log(config);
   config = config || {};
   config.encryptionCipher = config.encryptionCipher || 'aes-256-cbc';
   config.encryptionPassword = config.encryptionPassword || 'SECRET';
   config.databasePlugin = 'LevelDB';
   config.fileStorageConfig = config.fileStorageConfig || {};
-  var database = new plugins.database[config.databasePlugin](config.databaseConfig, logger);
-  var fileStorage = new plugins.fileStorage.LocalFiles(config.fileStorageConfig);
-  var awsFileStorage = new plugins.fileStorage.AwsS3Storage(config.s3FileStorageConfig);
+  config.database = new plugins.database[config.databasePlugin](config.databaseConfig, logger);
+  config.fileStorage = new plugins.fileStorage.LocalFiles(config.fileStorageConfig);
 
   // Used to generate IDs for asset uploads.
-  var flakeIdGen = new FlakeId();
-  var dbStream = database.listAssets();
+  var dbStream = config.database.listAssets();
 
   dbStream.pipe(through2.obj(function(data, enc, cb) {
-    console.log(data);
-    console.log('====');
-    database.getBucketByAssetId(data.assetId, function(err, bucketId) {
-      console.log('++++++++++++++++++', bucketId);
+    config.database.getBucketByAssetId(data.assetId, function(err, bucketId) {
+      if (err) {
+        return cb(err);
+      }
+      runPipes(config, bucketId, data);
     });
-    //var w = fs.createWriteStream('/home/vagrant/' + data.assetId, {encoding: 'binary'});
-    var zippedBytes = 0;
-    var rawBytes = 0;
-    var fileStream = fileStorage.createReadStream(data.assetId);
-    fileStream.on('error', function(err) {
-      console.log('File not found... Moving on.');
-    });
-    fileStream.pipe(crypto.createDecipher(config.encryptionCipher, config.encryptionPassword))
-      .pipe(through2(function(data, enc, cb) {
-        zippedBytes += data.length;
-        this.push(data);
-      }))
-      .pipe(zlib.createGunzip())
-      .pipe(through2(function(data, enc, cb) {
-        rawBytes += data.length;
-        this.push(data);
-      }))
-      .pipe(crypto.createCipher(config.encryptionCipher, config.encryptionPassword + data.assetId))
-      .pipe(zlib.createGzip())
-      // TODO S3 stuff.
-      .on('close', function() {
-        /*metadata.rawSize = rawBytes;
-        metadata.zippedSize = zippedBytes;
-        self.database.updateAsset(bucket, assetName, assetId, metadata, function(error) {
-          if (error) {
-            res.status(400).send(error.message);
-            return console.error(error);
-          }
-          self.logger.info('Asset ' + assetName + ' uploaded to bucket bucket ' + bucket + ' using token ' + token, {bucket: bucket, token: token, assetName: assetName});
-          res.end(assetId);
-        });*/
-      });
-
-
-      //.pipe(w);
 
     dbStream.on('error', function(err) {
       cb(err);
     });
     cb();
   }));
-  // fileStorage.createReadStream(assetId)
-  //  .pipe(crypto.createDecipher(self.options.encryptionCipher, self.options.encryptionPassword))
-  //  .pipe(zlib.createGunzip())
-
 });
 
+function runPipes(config, bucketId, assetData) {
+  var assetId = assetData.assetId;
+  var assetMetadata = assetData.metadata;
+  var zippedByteCounter = new ByteCounter();
+  var rawByteCounter = new ByteCounter();
+  var fileStream = config.fileStorage.createReadStream(assetId);
+  var recipheredFileWriter = fs.createWriteStream('/var/lib/probo/asset-receiver-files--reciphered/' + assetId, {encoding: 'binary'});
 
-function runPipes() {
-
+  fileStream
+    .on('error', function(err) {
+      console.log(`File not found: ${assetId}`);
+      fileStream.unpipe();
+    })
+    .pipe(crypto.createDecipher(config.encryptionCipher, config.encryptionPassword))
+    .pipe(zlib.createGunzip())
+    .pipe(rawByteCounter)
+    .pipe(zlib.createGzip())
+    .pipe(zippedByteCounter)
+    .pipe(crypto.createCipher(config.encryptionCipher, config.encryptionPassword + assetId + bucketId))
+    .pipe(recipheredFileWriter)
+    .on('close', function() {
+      assetMetadata.rawSize = rawByteCounter.bytes;
+      assetMetadata.zippedSize = zippedByteCounter.bytes;
+      config.database.updateAsset(bucketId, assetMetadata.fileName, assetId, assetMetadata, function(error) {
+        if (error) {
+          return console.error(error);
+        }
+      });
+    });
 }

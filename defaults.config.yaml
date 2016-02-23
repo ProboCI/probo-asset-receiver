@@ -15,10 +15,5 @@ fileStorageConfig:
 encryptionCipher: 'aes-256-cbc'
 encryptionPassword: SECRET
 
-s3FileStorageConfig:
-  awsBucket: null
-  awsAccessKeyId: null
-  awsSecretAccessKey: null
-
 # API tokens for creating all routes except asset upload (disabled by default)
 tokens: null
