@@ -1,0 +1,141 @@
+#! /usr/bin/env node
+'use strict';
+
+var Loader = require('yaml-config-loader');
+var yargs = require('yargs');
+var path = require('path');
+var bunyan = require('bunyan');
+var through2 = require('through2');
+
+var plugins = require('../lib/plugins');
+
+var loader = new Loader({stopOnError: false});
+var logger = bunyan.createLogger({name: 'probo-asset-fixer'});
+
+var cliargs = yargs
+  .describe('config', 'A path to a one or more configuration files or directories.')
+  .alias('config', 'c');
+
+var argv = cliargs.argv;
+
+if (argv.help) {
+  cliargs.showHelp();
+  throw new Error();
+}
+
+loader.on('error', function(error) {
+  // Ignore errors due to missing files.
+});
+
+loader.add(path.join(__dirname, '..', 'defaults.config.yaml'), {filterKeys: true});
+loader.addAndNormalizeObject(process.env);
+
+if (argv.config) {
+  if (typeof argv.config === 'string') {
+    argv.config = [argv.config];
+  }
+  argv.config.forEach(function(arg) {
+    loader.add(path.resolve(arg));
+  });
+}
+
+loader.addAndNormalizeObject(argv);
+
+loader.load(function(error, config) {
+  config = config || {};
+  config.databasePlugin = 'LevelDB';
+  config.database = new plugins.database[config.databasePlugin](config.databaseConfig, logger);
+
+  // Used to generate IDs for asset uploads.
+  var assetIds = [];
+  var dbStream = config.database.listAssets();
+
+  dbStream.on('data', function(data) {
+    var assetData = {
+      assetId: data.assetId,
+      token: data.metadata.token,
+    };
+
+    assetIds.push(assetData);
+  })
+  .on('error', function(err) {
+    console.log(err);
+    return;
+  })
+  .on('end', function() {
+    assetIds.forEach(function(asset) {
+      config.database.getBucketFromToken(asset.token, function(err, bucketId) {
+        findAndRepairBucketAsset(bucketId, asset.assetId, config);
+      });
+    });
+  });
+
+});
+
+
+function findAndRepairBucketAsset(bucketId, assetId, config) {
+  config.database.listBucketsAssets(bucketId)
+    .pipe(through2.obj(function(data, enc, cb) {
+      var parts = data.key.split('!!');
+      if (parts.length === 4) {
+        if (parts[1] === bucketId && parts[3] === assetId) {
+          repairBucketAsset(bucketId, assetId, parts[2], data.value, config);
+        }
+      }
+      else if (parts.length > 4) {
+        console.log('Possible error at: ', data.key);
+      }
+      cb();
+    }));
+}
+
+function repairBucketAsset(bucketId, assetId, assetName, value, config) {
+  config.database.addAssetNameToAssetMetadata(assetId, assetName, function(err) {
+    if (err) {
+      console.log('Could not update asset metadata for asset: ' + assetId);
+      return;
+    }
+  });
+
+  config.database.createBucketAssetVersion(bucketId, assetId, assetName, value, function(err) {
+    if (err) {
+      console.log('Failed to repair bucket asset:');
+      console.log(`bucket!!${bucketId}!!${assetName}!!${assetId}`);
+      return;
+    }
+    config.database.deleteOldBucketVersion(bucketId, assetId, assetName, function(err) {
+      if (err) {
+        console.log('Failed to delete old bucket version:');
+        console.log(`bucket!!${bucketId}!!${assetName}!!${assetId}`);
+        return;
+      }
+      createBucketAsset(bucketId, assetName, config);
+    });
+  });
+}
+
+function createBucketAsset(bucketId, assetName, config) {
+  config.database.getOldAssetId(bucketId, assetName, function(err, assetId) {
+    if (err) {
+      console.log('Failed to retreive bucket asset:');
+      console.log(`bucket!!${bucketId}!!asset!!${assetName}`);
+      return;
+    }
+
+    config.database.createBucketAsset(bucketId, assetName, assetId, function(err) {
+      if (err) {
+        console.log('Failed to create bucket asset:');
+        console.log(`bucket!!${bucketId}!!asset!!${assetName}`);
+        return;
+      }
+
+      config.database.deleteOldBucketAsset(bucketId, assetName, function(err) {
+        if (err) {
+          console.log('Failed to remove bucket asset:');
+          console.log(`bucket!!${bucketId}!!asset!!${assetName}`);
+          return;
+        }
+      });
+    });
+  });
+}
