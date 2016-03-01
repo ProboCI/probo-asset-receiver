@@ -253,7 +253,6 @@ describe('http-api', function() {
     });
   });
   describe('upload asset', function() {
-    var uploadedAssetId = null;
     it('should receive a 403 if an invalid token is used for an upload', function(done) {
       request.post(getOptions('/asset/bazr/foo.json'), function(error, response, body) {
         response.statusCode.should.equal(403);
@@ -264,7 +263,6 @@ describe('http-api', function() {
     it('should receive a file asset uploaded with a token and serve the file back', function(done) {
       var options = getOptions('/asset/baz/package.json');
       var submitStream = request.post(options, function(err, res, body) {
-        uploadedAssetId = body;
         res.statusCode.should.equal(201);
         done();
       });
@@ -279,7 +277,7 @@ describe('http-api', function() {
       });
     });
     it('should receive a file\'s rawSize and zippedSize size once uploaded', function(done) {
-      var options = getOptions('/buckets/foo!!package.json!!' + uploadedAssetId);
+      var options = getOptions('/asset-size/foo/package.json');
       request(options, function(error, response, body) {
         var filePath = __dirname + '/../package.json';
         var content = fs.readFileSync(filePath, 'utf8');
