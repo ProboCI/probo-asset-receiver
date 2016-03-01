@@ -74,7 +74,7 @@ loader.load(function(error, config) {
 
 
 function findAndRepairBucketAsset(bucketId, assetId, config) {
-  config.database.listBucketsAssets(bucketId)
+  config.database.listOldBucketsAssets(bucketId)
     .pipe(through2.obj(function(data, enc, cb) {
       var parts = data.key.split('!!');
       if (parts.length === 4) {

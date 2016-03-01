@@ -97,6 +97,11 @@ describe('http-auth', function() {
     it('GET /asset/:bucket/:assetName', function(done) {
       http().get('/asset/:bucket/:assetName').expect(401, done);
     });
+
+    it('GET /buckets/:bucket/assets', function(done) {
+      http().get('/buckets/:bucket/assets').expect(401, done);
+    });
+
   });
 
   describe('authenticated route accepts valide auth token ', function() {
@@ -276,23 +281,43 @@ describe('http-api', function() {
         done();
       });
     });
-    it('should receive a file\'s rawSize and zippedSize size once uploaded', function(done) {
+    it('should serve a 404 if an invalid asset is requested', function(done) {
+      request(getOptions('/asset/foo/no-file.png'), function(error, response, body) {
+        response.statusCode.should.equal(404);
+        body.should.equal('Not Found');
+        done();
+      });
+    });
+  });
+
+  describe('Asset Data', function(done) {
+    it('should receive a file\'s rawSize and zippedSize size.', function() {
       var options = getOptions('/asset-size/foo/package.json');
       request(options, function(error, response, body) {
         var filePath = __dirname + '/../package.json';
         var content = fs.readFileSync(filePath, 'utf8');
         var fileStat = fs.statSync(filePath);
-
         body.zippedSize.should.equal(zlib.gzipSync(content).length);
         body.rawSize.should.equal(fileStat.size);
 
         done();
       });
     });
-    it('should serve a 404 if an invalid asset is requested', function(done) {
-      request(getOptions('/asset/foo/no-file.png'), function(error, response, body) {
-        response.statusCode.should.equal(404);
-        body.should.equal('Not Found');
+    it('should list asset metadata for a bucket', function() {
+      var options = getOptions('/buckets/foo/assets');
+      request(options, function(error, response, body) {
+        Array.isArray(body).should.be.true();
+        body.length.should.equal(1);
+        body.fileName.should.equal('package.json');
+
+        body.zippedSize.should.be.a.Number();
+        body.zippedSize.should.be.above(0);
+
+        body.rawSize.should.be.a.Number();
+        body.rawSize.should.be.above(0);
+
+        body.time.should.be.a.Number(0);
+        body.time.should.be.above(0);
         done();
       });
     });
