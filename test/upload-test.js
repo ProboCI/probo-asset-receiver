@@ -238,7 +238,7 @@ describe('http-api', function() {
           done();
         });
       });
-      it('should delete a token an no longer see it listed in the bucket', function(done) {
+      it('should delete a token and no longer see it listed in the bucket', function(done) {
         request(getOptions('/buckets/foo/token'), function(error, response, body) {
           body[0].should.equal('bar');
           body[1].should.equal('baz');
