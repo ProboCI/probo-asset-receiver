@@ -90,6 +90,10 @@ describe('http-auth', function() {
       http().delete('/buckets/:bucket/token/:token').expect(401, done);
     });
 
+    it('DELETE /buckets/:bucket/asset/:assetName', function(done) {
+      http().delete('/buckets/:bucket/asset/:assetName').expect(401, done);
+    });
+
     it('GET /buckets/:bucket/token', function(done) {
       http().get('/buckets/:bucket/token').expect(401, done);
     });
@@ -140,6 +144,7 @@ describe('http-api', function() {
   after(function(done) {
     server.stop(done);
   });
+
   describe('server', function() {
     it('should listen on a designated port and report its identity', function(done) {
       request(getOptions('/'), function(error, response, body) {
@@ -154,6 +159,7 @@ describe('http-api', function() {
       }).should.throw();
     });
   });
+
   describe('create-bucket', function() {
     describe('manage buckets', function() {
       it('should receive a 404 for a nonexistent bucket', function(done) {
@@ -201,6 +207,7 @@ describe('http-api', function() {
         });
       });
     });
+
     describe('manage tokens', function() {
       it('should create a token and retrieve it in a list of tokens', function(done) {
         request.post(getOptions('/buckets/foo/token/bar'), function(error, response, body) {
@@ -257,6 +264,7 @@ describe('http-api', function() {
       });
     });
   });
+
   describe('upload asset', function() {
     it('should receive a 403 if an invalid token is used for an upload', function(done) {
       request.post(getOptions('/asset/bazr/foo.json'), function(error, response, body) {
@@ -324,8 +332,54 @@ describe('http-api', function() {
     });
   });
 
-        body.time.should.be.a.Number(0);
-        body.time.should.be.above(0);
+  describe('Asset Removal', function() {
+    var foundAssetId = null;
+    it('should have the bucket asset before it is deleted.', function(done) {
+      server.database.getAssetId('foo', 'package.json', function(err, assetId) {
+        should.not.exist(err);
+        foundAssetId = assetId;
+        assetId.should.be.a.String();
+        assetId.length.should.equal(16);
+        done();
+      });
+    });
+    it('should have the file asset before it is deleted.', function(done) {
+      var file = server.fileStorage.createReadStream(foundAssetId);
+      file.on('data', function(data) {
+        data.length.should.be.above(0);
+        done();
+      });
+    });
+    it('should respond to a DELETE request.', function(done) {
+      var options = getOptions('/buckets/foo/asset/package.json');
+      request.del(options, function(error, response, body) {
+        response.statusCode.should.equal(202);
+        body.should.equal('Asset removed.');
+        done();
+      });
+    });
+    it('should no longer contain bucket asset database data.', function(done) {
+      server.database.getAssetId('foo', 'package.json', function(err, assetId) {
+        should.not.exist(assetId);
+        done();
+      });
+    });
+    it('should no longer contain asset database data.', function(done) {
+      server.database.getAssetMetadata(foundAssetId, function(err, data) {
+        should.not.exist(data);
+        done();
+      });
+    });
+    it('should no longer contain bucket-asset-version database data.', function(done) {
+      server.database.getBucketAssetVersion('foo', 'package.json', foundAssetId, function(err, data) {
+        should.not.exist(data);
+        done();
+      });
+    });
+    it('should delete a file.', function(done) {
+      var file = server.fileStorage.createReadStream(foundAssetId);
+      file.on('error', function(err) {
+        err.message.should.startWith('ENOENT: no such file or directory');
         done();
       });
     });
