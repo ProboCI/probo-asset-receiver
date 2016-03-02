@@ -65,7 +65,7 @@ describe('http-auth', function() {
     server.start(done);
   });
 
-  describe('routes require authentication', function(done) {
+  describe('routes require authentication', function() {
     it('GET /buckets (no auth token)', function(done) {
       http().get('/buckets').expect(401, done);
     });
@@ -290,8 +290,8 @@ describe('http-api', function() {
     });
   });
 
-  describe('Asset Data', function(done) {
-    it('should receive a file\'s rawSize and zippedSize size.', function() {
+  describe('Asset Data', function() {
+    it('should receive a file\'s rawSize and zippedSize size.', function(done) {
       var options = getOptions('/asset-size/foo/package.json');
       request(options, function(error, response, body) {
         var filePath = __dirname + '/../package.json';
@@ -303,18 +303,26 @@ describe('http-api', function() {
         done();
       });
     });
-    it('should list asset metadata for a bucket', function() {
+    it('should list asset metadata for a bucket', function(done) {
       var options = getOptions('/buckets/foo/assets');
       request(options, function(error, response, body) {
         Array.isArray(body).should.be.true();
         body.length.should.equal(1);
-        body.fileName.should.equal('package.json');
+        var metadata = body[0];
+        metadata.fileName.should.equal('package.json');
 
-        body.zippedSize.should.be.a.Number();
-        body.zippedSize.should.be.above(0);
+        metadata.zippedSize.should.be.a.Number();
+        metadata.zippedSize.should.be.above(0);
 
-        body.rawSize.should.be.a.Number();
-        body.rawSize.should.be.above(0);
+        metadata.rawSize.should.be.a.Number();
+        metadata.rawSize.should.be.above(0);
+
+        metadata.time.should.be.a.Number(0);
+        metadata.time.should.be.above(0);
+        done();
+      });
+    });
+  });
 
         body.time.should.be.a.Number(0);
         body.time.should.be.above(0);
