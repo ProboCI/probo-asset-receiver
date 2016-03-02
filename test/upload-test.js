@@ -126,7 +126,7 @@ describe('http-api', function() {
   var server = null;
   var port = null;
 
-  var getOptions = function(path, method) {
+  var getOptions = function(path) {
     var options = {
       url: 'http://localhost:' + port + path,
       json: true,
