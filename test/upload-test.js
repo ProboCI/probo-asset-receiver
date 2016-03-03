@@ -300,7 +300,7 @@ describe('http-api', function() {
 
   describe('Asset Data', function() {
     it('should receive a file\'s rawSize and zippedSize size.', function(done) {
-      var options = getOptions('/asset-size/foo/package.json');
+      var options = getOptions('/buckets/foo/assets/package.json/size');
       request(options, function(error, response, body) {
         var filePath = __dirname + '/../package.json';
         var content = fs.readFileSync(filePath, 'utf8');
