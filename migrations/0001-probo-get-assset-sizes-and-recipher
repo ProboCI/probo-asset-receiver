@@ -53,6 +53,7 @@ loader.load(function(error, config) {
   config.fileStorageConfig = config.fileStorageConfig || {};
   config.database = new plugins.database[config.databasePlugin](config.databaseConfig, logger);
   config.fileStorage = new plugins.fileStorage.LocalFiles(config.fileStorageConfig);
+  config.recipheredOutputDir = config.recipheredOutputDir || '/var/lib/probo/asset-receiver-files--reciphered/';
 
   // Used to generate IDs for asset uploads.
   var dbStream = config.database.listAssets();
@@ -60,7 +61,8 @@ loader.load(function(error, config) {
   dbStream.pipe(through2.obj(function(data, enc, cb) {
     config.database.getBucketByAssetId(data.assetId, function(err, bucketId) {
       if (err) {
-        return cb(err);
+        console.error(err);
+        return;
       }
       runPipes(config, bucketId, data);
     });
@@ -78,11 +80,11 @@ function runPipes(config, bucketId, assetData) {
   var zippedByteCounter = new ByteCounter();
   var rawByteCounter = new ByteCounter();
   var fileStream = config.fileStorage.createReadStream(assetId);
-  var recipheredFileWriter = fs.createWriteStream('/var/lib/probo/asset-receiver-files--reciphered/' + assetId, {encoding: 'binary'});
+  var recipheredFileWriter = fs.createWriteStream(path.join(config.recipheredOutputDir, assetId), {encoding: 'binary'});
 
   fileStream
     .on('error', function(err) {
-      console.log(`File not found: ${assetId}`);
+      console.error(`File not found: ${assetId}`);
       fileStream.unpipe();
     })
     .pipe(crypto.createDecipher(config.encryptionCipher, config.encryptionPassword))
@@ -99,6 +101,7 @@ function runPipes(config, bucketId, assetData) {
         if (error) {
           return console.error(error);
         }
+        console.log(`Updated file and metadata: ${assetId} - Raw size: ${rawByteCounter.bytes} - Zipped size: ${zippedByteCounter.bytes}`);
       });
     });
 }

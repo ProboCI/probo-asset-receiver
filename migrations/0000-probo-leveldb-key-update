@@ -59,11 +59,12 @@ loader.load(function(error, config) {
     assetIds.push(assetData);
   })
   .on('error', function(err) {
-    console.log(err);
+    console.error(err);
     return;
   })
   .on('end', function() {
     assetIds.forEach(function(asset) {
+      console.log(`Fixing asset: ${asset.assetId}`);
       config.database.getBucketFromToken(asset.token, function(err, bucketId) {
         findAndRepairBucketAsset(bucketId, asset.assetId, config);
       });
@@ -83,7 +84,7 @@ function findAndRepairBucketAsset(bucketId, assetId, config) {
         }
       }
       else if (parts.length > 4) {
-        console.log('Possible error at: ', data.key);
+        console.warn('Possible error at: ', data.key);
       }
       cb();
     }));
@@ -92,23 +93,26 @@ function findAndRepairBucketAsset(bucketId, assetId, config) {
 function repairBucketAsset(bucketId, assetId, assetName, value, config) {
   config.database.addAssetNameToAssetMetadata(assetId, assetName, function(err) {
     if (err) {
-      console.log('Could not update asset metadata for asset: ' + assetId);
+      console.error('Could not update asset metadata for asset: ' + assetId);
       return;
     }
+    console.log(`Updated metadata: "asset!!${assetId}"`);
   });
 
   config.database.createBucketAssetVersion(bucketId, assetId, assetName, value, function(err) {
     if (err) {
-      console.log('Failed to repair bucket asset:');
-      console.log(`bucket!!${bucketId}!!${assetName}!!${assetId}`);
+      console.error('Failed to repair bucket asset:');
+      console.error(`bucket!!${bucketId}!!${assetName}!!${assetId}`);
       return;
     }
+    console.log(`Created: "bucket-asset-version!!${bucketId}!!${assetName}!!${assetId}"`);
     config.database.deleteOldBucketVersion(bucketId, assetId, assetName, function(err) {
       if (err) {
-        console.log('Failed to delete old bucket version:');
-        console.log(`bucket!!${bucketId}!!${assetName}!!${assetId}`);
+        console.error('Failed to delete old bucket version:');
+        console.error(`bucket!!${bucketId}!!${assetName}!!${assetId}`);
         return;
       }
+      console.log(`Removed: "bucket!!${bucketId}!!${assetName}!!${assetId}"`);
       createBucketAsset(bucketId, assetName, config);
     });
   });
@@ -117,24 +121,25 @@ function repairBucketAsset(bucketId, assetId, assetName, value, config) {
 function createBucketAsset(bucketId, assetName, config) {
   config.database.getOldAssetId(bucketId, assetName, function(err, assetId) {
     if (err) {
-      console.log('Failed to retreive bucket asset:');
-      console.log(`bucket!!${bucketId}!!asset!!${assetName}`);
+      console.error('Failed to retreive bucket asset:');
+      console.error(`bucket!!${bucketId}!!asset!!${assetName}`);
       return;
     }
 
     config.database.createBucketAsset(bucketId, assetName, assetId, function(err) {
       if (err) {
-        console.log('Failed to create bucket asset:');
-        console.log(`bucket!!${bucketId}!!asset!!${assetName}`);
+        console.error('Failed to create bucket asset:');
+        console.error(`bucket-asset!!${bucketId}!!${assetName}`);
         return;
       }
-
+      console.log(`Created: "bucket-asset!!${bucketId}!!${assetName}"`);
       config.database.deleteOldBucketAsset(bucketId, assetName, function(err) {
         if (err) {
-          console.log('Failed to remove bucket asset:');
-          console.log(`bucket!!${bucketId}!!asset!!${assetName}`);
+          console.error('Failed to remove bucket asset:');
+          console.error(`bucket!!${bucketId}!!asset!!${assetName}`);
           return;
         }
+        console.log(`Removed: "bucket!!${bucketId}!!asset!!${assetName}"`);
       });
     });
   });
