@@ -91,7 +91,7 @@ describe('http-auth', function() {
     });
 
     it('DELETE /buckets/:bucket/asset/:assetName', function(done) {
-      http().delete('/buckets/:bucket/asset/:assetName').expect(401, done);
+      http().delete('/buckets/:bucket/assets/:assetName').expect(401, done);
     });
 
     it('GET /buckets/:bucket/token', function(done) {
@@ -351,7 +351,7 @@ describe('http-api', function() {
       });
     });
     it('should respond to a DELETE request.', function(done) {
-      var options = getOptions('/buckets/foo/asset/package.json');
+      var options = getOptions('/buckets/foo/assets/package.json');
       request.del(options, function(error, response, body) {
         response.statusCode.should.equal(202);
         body.should.equal('Asset removed.');
