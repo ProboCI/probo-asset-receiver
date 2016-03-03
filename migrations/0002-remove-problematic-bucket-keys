@@ -1,0 +1,73 @@
+#! /usr/bin/env node
+'use strict';
+
+var Loader = require('yaml-config-loader');
+var yargs = require('yargs');
+var path = require('path');
+var bunyan = require('bunyan');
+var through2 = require('through2');
+
+var plugins = require('../lib/plugins');
+
+var loader = new Loader({stopOnError: false});
+var logger = bunyan.createLogger({name: 'probo-asset-fixer'});
+
+var cliargs = yargs
+  .describe('config', 'A path to a one or more configuration files or directories.')
+  .alias('config', 'c');
+
+var argv = cliargs.argv;
+
+if (argv.help) {
+  cliargs.showHelp();
+  throw new Error();
+}
+
+loader.on('error', function(error) {
+  // Ignore errors due to missing files.
+});
+
+loader.add(path.join(__dirname, '..', 'defaults.config.yaml'), {filterKeys: true});
+loader.addAndNormalizeObject(process.env);
+
+if (argv.config) {
+  if (typeof argv.config === 'string') {
+    argv.config = [argv.config];
+  }
+  argv.config.forEach(function(arg) {
+    loader.add(path.resolve(arg));
+  });
+}
+
+loader.addAndNormalizeObject(argv);
+
+loader.load(function(error, config) {
+  config = config || {};
+  config.databasePlugin = 'LevelDB';
+  config.database = new plugins.database[config.databasePlugin](config.databaseConfig, logger);
+
+  // Used to generate IDs for asset uploads.
+  var dbStream = config.database.listBucketKeys();
+  var keys = [];
+  dbStream
+    .pipe(through2.obj(function(data, enc, cb) {
+      if (data.split('!!').length > 2) {
+        keys.push(data);
+      }
+      this.push(data);
+      cb();
+    }))
+    .on('data', function(data) {
+      // Need a consumer of the data even if it does nothing.
+    })
+    .on('end', function() {
+      config.database.deleteBatch(keys, function(err, result) {
+        if (err) {
+          console.error('Could not remove keys.');
+        }
+        keys.forEach(function(key) {
+          console.log(`Removed key: "${key}"`);
+        });
+      });
+    });
+});
