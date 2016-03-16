@@ -15,5 +15,7 @@ fileStorageConfig:
 encryptionCipher: 'aes-256-cbc'
 encryptionPassword: SECRET
 
+recipheredOutputDir: null
+
 # API tokens for creating all routes except asset upload (disabled by default)
 tokens: null
