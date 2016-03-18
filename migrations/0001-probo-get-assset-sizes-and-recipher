@@ -18,7 +18,9 @@ var logger = bunyan.createLogger({name: 'probo-asset-fixer'});
 
 var cliargs = yargs
   .describe('config', 'A path to a one or more configuration files or directories.')
-  .alias('config', 'c');
+  .alias('config', 'c')
+  .describe('reciphered-output-dir', 'The directory in which to output the re-encyphered file contents.')
+  .demand('reciphered-output-dir');
 
 var argv = cliargs.argv;
 
@@ -53,7 +55,12 @@ loader.load(function(error, config) {
   config.fileStorageConfig = config.fileStorageConfig || {};
   config.database = new plugins.database[config.databasePlugin](config.databaseConfig, logger);
   config.fileStorage = new plugins.fileStorage.LocalFiles(config.fileStorageConfig);
-  config.recipheredOutputDir = config.recipheredOutputDir || '/var/lib/probo/asset-receiver-files--reciphered/';
+  if (config.recipheredOutputDir) {
+    config.recipheredOutputDir = config.recipheredOutputDir;
+  }
+  else {
+    throw new Error('Config not specified.');
+  }
 
   // Used to generate IDs for asset uploads.
   var dbStream = config.database.listAssets();
