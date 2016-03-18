@@ -1,6 +1,6 @@
 {
   "name": "probo-asset-receiver",
-  "version": "1.0.1",
+  "version": "2.0.0",
   "description": "",
   "main": "index.js",
   "repository": "https://github.com/ProboCI/probo-asset-receiver.git",
@@ -23,7 +23,6 @@
     "mockrequire": "0.0.5",
     "should": "^7.1.0",
     "supertest": "^1.1.0",
-    "should": "^7.1.0",
     "split2": "^1.1.0"
   },
   "dependencies": {
