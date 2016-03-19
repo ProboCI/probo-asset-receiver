@@ -1,0 +1,102 @@
+#! /usr/bin/env node
+'use strict';
+
+var Loader = require('yaml-config-loader');
+var yargs = require('yargs');
+var path = require('path');
+var bunyan = require('bunyan');
+var through2 = require('through2');
+
+var plugins = require('../lib/plugins');
+
+var loader = new Loader({stopOnError: false});
+var logger = bunyan.createLogger({name: 'probo-asset-fixer'});
+
+var cliargs = yargs
+  .describe('config', 'A path to a one or more configuration files or directories.')
+  .alias('config', 'c');
+
+var argv = cliargs.argv;
+
+if (argv.help) {
+  cliargs.showHelp();
+  throw new Error();
+}
+
+loader.on('error', function(error) {
+  // Ignore errors due to missing files.
+});
+
+loader.add(path.join(__dirname, '..', 'defaults.config.yaml'), {filterKeys: true});
+loader.addAndNormalizeObject(process.env);
+
+if (argv.config) {
+  if (typeof argv.config === 'string') {
+    argv.config = [argv.config];
+  }
+  argv.config.forEach(function(arg) {
+    loader.add(path.resolve(arg));
+  });
+}
+
+loader.addAndNormalizeObject(argv);
+
+var streamToArray = function(done) {
+  var foo = null;
+  var elements = [];
+  var transform = function(data, enc, cb) {
+    elements.push(data);
+    cb();
+  };
+  var flush = function(cb) {
+    done(null, elements);
+    cb();
+  };
+  return through2.obj(transform, flush);
+};
+
+loader.load(function(error, config) {
+  config = config || {};
+  config.databasePlugin = 'LevelDB';
+  config.database = new plugins.database[config.databasePlugin](config.databaseConfig, logger);
+
+  // Used to generate IDs for asset uploads.
+  var assetIds = [];
+  var db = config.database;
+  var dbStream = db.listAssets();
+
+  dbStream
+    .pipe(through2.obj(function(data, enc, cb) {
+      var assetId = data.assetId;
+      var token = data.metadata.token;
+      var fileName = data.metadata.fileName;
+      db.getBucketFromToken(token, function(err, bucketId) {
+        if (error) logger.error(err);
+        data.metadata.bucket = bucketId;
+        // Set the bucket Id on the asset.
+        db.listAssetVersions(bucketId, fileName)
+          .pipe(streamToArray(function(error, elements) {
+            elements.sort(dateSort);
+            db.getAssetId(bucketId, fileName, function(error, currentId) {
+              var correctId = elements.shift().key.substr(-16);
+              if (currentId !== correctId) {
+                var key = `bucket-asset!!${bucketId}!!${fileName}`;
+                logger.info(`Updating ${key} from asset ${currentId} to ${correctId}`);
+                db.db.put(key, correctId, cb);
+              }
+            });
+          }));
+      });
+    }));
+});
+
+function dateSort(a, b) {
+  if (a.value.time > b.value.time) {
+    return 1;
+  }
+  if (a.value.time < b.value.time) {
+    return -1;
+  }
+  // a must be equal to b
+  return 0;
+}
