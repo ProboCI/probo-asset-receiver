@@ -84,6 +84,9 @@ loader.load(function(error, config) {
                 logger.info(`Updating ${key} from asset ${currentId} to ${correctId}`);
                 db.db.put(key, correctId, cb);
               }
+              else {
+                cb();
+              }
             });
           }));
       });
