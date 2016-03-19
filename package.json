@@ -1,6 +1,6 @@
 {
   "name": "probo-asset-receiver",
-  "version": "2.0.0",
+  "version": "2.0.1",
   "description": "",
   "main": "index.js",
   "repository": "https://github.com/ProboCI/probo-asset-receiver.git",
