@@ -78,7 +78,7 @@ loader.load(function(error, config) {
           .pipe(streamToArray(function(error, elements) {
             elements.sort(dateSort);
             db.getAssetId(bucketId, fileName, function(error, currentId) {
-              var correctId = elements.shift().key.substr(-16);
+              var correctId = elements.pop().key.substr(-16);
               if (currentId !== correctId) {
                 var key = `bucket-asset!!${bucketId}!!${fileName}`;
                 logger.info(`Updating ${key} from asset ${currentId} to ${correctId}`);
