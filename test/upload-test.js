@@ -354,7 +354,7 @@ describe('http-api', function() {
       var options = getOptions('/buckets/foo/assets/package.json');
       request.del(options, function(error, response, body) {
         response.statusCode.should.equal(202);
-        body.should.equal('Asset removed.');
+        body.should.equal('Asset deleted');
         done();
       });
     });
