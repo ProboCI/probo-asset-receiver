@@ -141,6 +141,11 @@ describe('http-api', function() {
       done();
     });
   });
+
+  beforeEach(function() {
+    server.uploadsPaused = false;
+  });
+
   after(function(done) {
     server.stop(done);
   });
@@ -296,6 +301,17 @@ describe('http-api', function() {
         done();
       });
     });
+    it('should receive a 500 error if uploads are paused', function(done) {
+      server.uploadsPaused = true;
+      var options = getOptions('/asset/baz/package.json');
+      var errorMessage = 'The system is undergoing maintenance and cannot accept file uploads at the moment.';
+      request.post(options, function(error, res, body) {
+        res.statusCode.should.equal(503);
+        res.statusMessage.should.equal('Service Unavailable');
+        body.should.equal(errorMessage);
+        done();
+      });
+    });
   });
 
   describe('Asset Data', function() {
@@ -359,27 +375,68 @@ describe('http-api', function() {
       });
     });
     it('should no longer contain bucket asset database data.', function(done) {
-      server.database.getAssetId('foo', 'package.json', function(err, assetId) {
+      server.database.getAssetId('foo', 'package.json', function(error, assetId) {
         should.not.exist(assetId);
         done();
       });
     });
     it('should no longer contain asset database data.', function(done) {
-      server.database.getAssetMetadata(foundAssetId, function(err, data) {
+      server.database.getAssetMetadata(foundAssetId, function(error, data) {
         should.not.exist(data);
         done();
       });
     });
     it('should no longer contain bucket-asset-version database data.', function(done) {
-      server.database.getBucketAssetVersion('foo', 'package.json', foundAssetId, function(err, data) {
+      server.database.getBucketAssetVersion('foo', 'package.json', foundAssetId, function(error, data) {
         should.not.exist(data);
         done();
       });
     });
     it('should delete a file.', function(done) {
       var file = server.fileStorage.createReadStream(foundAssetId);
-      file.on('error', function(err) {
-        err.message.should.startWith('ENOENT: no such file or directory');
+      file.on('error', function(error) {
+        error.message.should.startWith('ENOENT: no such file or directory');
+        done();
+      });
+    });
+  });
+
+  describe('Maintenance endpoints', function() {
+    it('should give an appropriate message if uploads are not paused.', function(done) {
+      var options = getOptions('/service/upload-status');
+      request(options, function(error, response, body) {
+        console.log(body);
+        body.should.equal('Uploads are unpaused.');
+        done();
+      });
+    });
+    it('should give an appropriate message if uploads are paused.', function(done) {
+      var options = getOptions('/service/upload-status');
+      server.uploadsPaused = true;
+      request(options, function(error, response, body) {
+        console.log(body);
+        body.should.equal('Uploads are paused.');
+        done();
+      });
+    });
+    it('should pause the server upload status via post .', function(done) {
+      var options = getOptions('/service/upload-status');
+      options.body = {
+        uploadsPaused: true,
+      };
+      request.post(options, function(error, response, body) {
+        body.should.equal('Uploads are now paused.');
+        done();
+      });
+    });
+    it('should unpause the server upload status via post .', function(done) {
+      server.uploadsPaused = true;
+      var options = getOptions('/service/upload-status');
+      options.body = {
+        uploadsPaused: false,
+      };
+      request.post(options, function(error, response, body) {
+        body.should.equal('Uploads are now unpaused.');
         done();
       });
     });

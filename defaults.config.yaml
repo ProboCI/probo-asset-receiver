@@ -20,6 +20,8 @@ recipheredOutputDir: null
 # API tokens for creating all routes except asset upload (disabled by default)
 tokens: null
 
+uploadsPaused: false
+
 ## If using S3 use this template for config settings.
 #
 # fileStoragePlugin: AwsS3Storage

@@ -77,3 +77,13 @@ Example:
 ```
 ./bin/probo-asset-receiver -c path/to/config-file/awsS3Storage.config.yaml
 ```
+
+### 6. Pausing and unpausing file uploads
+If doing server maintenance, it is often nice to be able to prevent new files
+from coming in but still allowing existing files to be served. This allows
+builds to continue to function even though new assets will not be allowed. This
+is helpful when migrating the files to a new server or system.
+
+```
+curl -X POST -H "Authorization: Bearer" -H content-type:application/json --data-binary '{"uploadsPaused": true}' http://localhost:3000/service/upload-status
+```
