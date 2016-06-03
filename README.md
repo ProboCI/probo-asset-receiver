@@ -2,11 +2,11 @@
 [![Build Status](https://travis-ci.org/ProboCI/probo-asset-receiver.svg?branch=master)](https://travis-ci.org/ProboCI/probo-asset-receiver)
 [![Coverage Status](https://coveralls.io/repos/ProboCI/probo-asset-receiver/badge.svg?branch=master&service=github)](https://coveralls.io/github/ProboCI/probo-asset-receiver?branch=master)
 
-Allows the upload of an asset 
+Allows the upload of an asset
 
 This project is designed to be used in conjunction with the corresponding CLI client
 ([probo-uploader](https://github.com/ProboCI/probo-uploader)) to allow you to upload
-assets for use in probo builds. 
+assets for use in probo builds.
 
 ## Authentication
 
@@ -76,4 +76,14 @@ You can use [Amazon S3 storage](https://aws.amazon.com/s3/) to store your assets
 Example:
 ```
 ./bin/probo-asset-receiver -c path/to/config-file/awsS3Storage.config.yaml
+```
+
+### 6. Pausing and unpausing file uploads
+If doing server maintenance, it is often nice to be able to prevent new files
+from coming in but still allowing existing files to be served. This allows
+builds to continue to function even though new assets will not be allowed. This
+is helpful when migrating the files to a new server or system.
+
+```
+curl -X POST -H "Authorization: Bearer" -H content-type:application/json --data-binary '{"uploadsPaused": true}' http://localhost:3000/service/upload-status
 ```
