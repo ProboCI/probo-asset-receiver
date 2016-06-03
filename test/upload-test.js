@@ -294,6 +294,15 @@ describe('http-api', function() {
         done();
       });
     });
+    it('should receive a file\'s contents even if uploads are paused.', function(done) {
+      server.uploadsPaused = true;
+      var options = getOptions('/asset/foo/package.json');
+      options.json = false;
+      request(options, function(error, response, body) {
+        body.should.equal(fs.readFileSync(__dirname + '/../package.json').toString('utf8'));
+        done();
+      });
+    });
     it('should serve a 404 if an invalid asset is requested', function(done) {
       request(getOptions('/asset/foo/no-file.png'), function(error, response, body) {
         response.statusCode.should.equal(404);
