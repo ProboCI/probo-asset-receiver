@@ -275,7 +275,7 @@ describe('http-api', function() {
     });
     it('should receive a file asset uploaded with a token and serve the file back', function(done) {
       var options = getOptions('/asset/baz/package.json');
-      var submitStream = request.post(options, function(err, res, body) {
+      var submitStream = request.post(options, function(error, res, body) {
         res.statusCode.should.equal(201);
         done();
       });
@@ -335,8 +335,8 @@ describe('http-api', function() {
   describe('Asset Removal', function() {
     var foundAssetId = null;
     it('should have the bucket asset before it is deleted.', function(done) {
-      server.database.getAssetId('foo', 'package.json', function(err, assetId) {
-        should.not.exist(err);
+      server.database.getAssetId('foo', 'package.json', function(error, assetId) {
+        should.not.exist(error);
         foundAssetId = assetId;
         assetId.should.be.a.String();
         assetId.length.should.equal(16);

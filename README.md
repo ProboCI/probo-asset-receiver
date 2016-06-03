@@ -2,11 +2,11 @@
 [![Build Status](https://travis-ci.org/ProboCI/probo-asset-receiver.svg?branch=master)](https://travis-ci.org/ProboCI/probo-asset-receiver)
 [![Coverage Status](https://coveralls.io/repos/ProboCI/probo-asset-receiver/badge.svg?branch=master&service=github)](https://coveralls.io/github/ProboCI/probo-asset-receiver?branch=master)
 
-Allows the upload of an asset 
+Allows the upload of an asset
 
 This project is designed to be used in conjunction with the corresponding CLI client
 ([probo-uploader](https://github.com/ProboCI/probo-uploader)) to allow you to upload
-assets for use in probo builds. 
+assets for use in probo builds.
 
 ## Authentication
 
