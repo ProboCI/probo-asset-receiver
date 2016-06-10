@@ -447,5 +447,26 @@ describe('http-api', function() {
         done();
       });
     });
+    it('should stream the database over HTTP.', function(done) {
+      var options = getOptions('/service/export-data');
+      request(options, function(error, response, body) {
+        var objects = body.split('\n').filter(function(s) {
+          return s !== '';
+        })
+        .map(function(s) {
+          return JSON.parse(s);
+        });
+        objects.length.should.equal(4);
+        objects[0].key.should.equal('bucket!!bar');
+        objects[1].key.should.equal('bucket!!foo');
+        objects[1].value.bar.should.equal('baz');
+        objects[2].key.should.equal('bucket-token!!foo!!baz');
+        objects[2].value.should.be.a.Number();
+        objects[2].value.should.be.above(1400000000000);
+        objects[3].key.should.equal('token!!baz');
+        objects[3].value.should.equal('foo');
+        done();
+      });
+    });
   });
 });
