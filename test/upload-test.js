@@ -414,7 +414,6 @@ describe('http-api', function() {
     it('should give an appropriate message if uploads are not paused.', function(done) {
       var options = getOptions('/service/upload-status');
       request(options, function(error, response, body) {
-        console.log(body);
         body.should.equal('Uploads are unpaused.');
         done();
       });
@@ -423,12 +422,11 @@ describe('http-api', function() {
       var options = getOptions('/service/upload-status');
       server.uploadsPaused = true;
       request(options, function(error, response, body) {
-        console.log(body);
         body.should.equal('Uploads are paused.');
         done();
       });
     });
-    it('should pause the server upload status via post .', function(done) {
+    it('should pause the server upload status via post.', function(done) {
       var options = getOptions('/service/upload-status');
       options.body = {
         uploadsPaused: true,
@@ -438,7 +436,7 @@ describe('http-api', function() {
         done();
       });
     });
-    it('should unpause the server upload status via post .', function(done) {
+    it('should unpause the server upload status via post.', function(done) {
       server.uploadsPaused = true;
       var options = getOptions('/service/upload-status');
       options.body = {
