@@ -414,7 +414,6 @@ describe('http-api', function() {
     it('should give an appropriate message if uploads are not paused.', function(done) {
       var options = getOptions('/service/upload-status');
       request(options, function(error, response, body) {
-        console.log(body);
         body.should.equal('Uploads are unpaused.');
         done();
       });
@@ -423,12 +422,11 @@ describe('http-api', function() {
       var options = getOptions('/service/upload-status');
       server.uploadsPaused = true;
       request(options, function(error, response, body) {
-        console.log(body);
         body.should.equal('Uploads are paused.');
         done();
       });
     });
-    it('should pause the server upload status via post .', function(done) {
+    it('should pause the server upload status via post.', function(done) {
       var options = getOptions('/service/upload-status');
       options.body = {
         uploadsPaused: true,
@@ -438,7 +436,7 @@ describe('http-api', function() {
         done();
       });
     });
-    it('should unpause the server upload status via post .', function(done) {
+    it('should unpause the server upload status via post.', function(done) {
       server.uploadsPaused = true;
       var options = getOptions('/service/upload-status');
       options.body = {
@@ -446,6 +444,27 @@ describe('http-api', function() {
       };
       request.post(options, function(error, response, body) {
         body.should.equal('Uploads are now unpaused.');
+        done();
+      });
+    });
+    it('should stream the database over HTTP.', function(done) {
+      var options = getOptions('/service/export-data');
+      request(options, function(error, response, body) {
+        var objects = body.split('\n').filter(function(s) {
+          return s !== '';
+        })
+        .map(function(s) {
+          return JSON.parse(s);
+        });
+        objects.length.should.equal(4);
+        objects[0].key.should.equal('bucket!!bar');
+        objects[1].key.should.equal('bucket!!foo');
+        objects[1].value.bar.should.equal('baz');
+        objects[2].key.should.equal('bucket-token!!foo!!baz');
+        objects[2].value.should.be.a.Number();
+        objects[2].value.should.be.above(1400000000000);
+        objects[3].key.should.equal('token!!baz');
+        objects[3].value.should.equal('foo');
         done();
       });
     });
