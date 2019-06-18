@@ -29,3 +29,4 @@ uploadsPaused: false
 #   awsAccessKeyId: [KEY ID FOR BUCKET]
 #   awsSecretAccessKey: [BUCKET SECRET KEY]
 #   awsBucket: [BUCKET NAME]
+
