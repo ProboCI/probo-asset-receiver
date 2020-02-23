@@ -32,7 +32,7 @@
     "bunyan-request": "^1.2.0",
     "express": "^4.17.1",
     "flake-idgen": "^1.1.2",
-    "level": "^5.0.1",
+    "level": "^6.0.0",
     "minimatch": "^3.0.4",
     "nyc": "^14.1.1",
     "passport": "^0.3.2",
