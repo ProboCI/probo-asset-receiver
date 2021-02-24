@@ -68,7 +68,7 @@ curl -i -XPOST --data-binary @database.sql.gz http://localhost:3000/asset/bar/ba
 ### 4. Download the file that you uploaded
 
 ```` bash
-curl -i http://localhost:3000/asset/bar/baz > baz
+curl -i http://localhost:3000/asset/foo/baz > baz
 ````
 
 ### 5. Using Amazon S3 to storage your assets
