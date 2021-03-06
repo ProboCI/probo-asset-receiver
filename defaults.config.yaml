@@ -2,6 +2,8 @@
 host: 0.0.0.0
 # The port to listen on.
 port: 3000
+# The URL to redirect to when trying to hit index page.
+homeRedirect: 'https://www.probo.ci'
 # The directory in which to store the LevelDB database.
 databasePlugin: LevelDB
 databaseConfig:
@@ -29,3 +31,4 @@ uploadsPaused: false
 #   awsAccessKeyId: [KEY ID FOR BUCKET]
 #   awsSecretAccessKey: [BUCKET SECRET KEY]
 #   awsBucket: [BUCKET NAME]
+
