@@ -13,5 +13,8 @@ RUN cd /home/probo/app/ && npm install
 
 WORKDIR /home/probo/app
 
-EXPOSE 3000
+EXPOSE 3070
+
+VOLUME ["/opt/db"]
+
 CMD ["bin/probo-asset-receiver"]
