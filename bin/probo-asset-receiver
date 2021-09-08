@@ -37,7 +37,7 @@ loader.on('error', function(error) {
   // Ignore errors due to missing files.
 });
 
-loader.add(path.join(__dirname, '..', 'defaults.config.yaml'), {filterKeys: true});
+loader.add(path.join(__dirname, '..', 'defaults.yaml'), {filterKeys: true});
 loader.addAndNormalizeObject(process.env);
 
 if (argv.config) {
