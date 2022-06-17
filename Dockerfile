@@ -1,12 +1,10 @@
 # ProboCI
 # https://www.probo.ci
 
-FROM node:12
+FROM node:12-alpine
 
-RUN useradd --user-group --create-home --shell /bin/false probo
 RUN mkdir -p /home/probo/app
 COPY . /home/probo/app
-RUN chown -R probo:probo /home/probo/app
 
 RUN cd /home/probo/app/ && npm install
 
