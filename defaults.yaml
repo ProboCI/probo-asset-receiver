@@ -8,10 +8,7 @@ homeRedirect: 'https://www.probo.ci'
 databasePlugin: LevelDB
 databaseConfig:
   databaseDataDirectory: db
-fileStoragePlugin: LocalFiles
-fileStorageConfig:
-  # The directory in which to store uploaded file assets.
-  fileDataDirectory: files
+
 # Determines the cipher used to encrypt the assets.
 # See https://www.openssl.org/docs/manmaster/apps/ciphers.html for options.
 encryptionCipher: 'aes-256-cbc'
@@ -24,11 +21,19 @@ tokens: null
 
 uploadsPaused: false
 
-## If using S3 use this template for config settings.
-#
+# fileStoragePlugin: LocalFiles
+# fileStorageConfig:
+#   fileDataDirectory: files
+
 # fileStoragePlugin: AwsS3Storage
 # fileStorageConfig:
 #   awsAccessKeyId: [KEY ID FOR BUCKET]
 #   awsSecretAccessKey: [BUCKET SECRET KEY]
 #   awsBucket: [BUCKET NAME]
 
+# fileStoragePlugin: AzureBlobStorage
+# fileStorageConfig:
+#   azureEndPointSuffix: core.windows.net
+#   storageAccount: [storage account name]
+#   azureKey: [storage account key]
+#   azureContainer: [assets container]

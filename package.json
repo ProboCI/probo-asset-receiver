@@ -24,6 +24,7 @@
     "supertest": "^4.0.2"
   },
   "dependencies": {
+    "@azure/storage-blob": "^12.28.0",
     "aws-sdk": "^2.1692.0",
     "biguint-format": "^1.0.1",
     "body-parser": "^1.13.3",
