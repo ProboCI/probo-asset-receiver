@@ -3,7 +3,7 @@ host: 0.0.0.0
 # The port to listen on.
 port: 3000
 # The URL to redirect to when trying to hit index page.
-homeRedirect: 'https://www.probo.ci'
+homeRedirect: ''
 # The directory in which to store the LevelDB database.
 databasePlugin: LevelDB
 databaseConfig:
@@ -13,7 +13,6 @@ databaseConfig:
 # See https://www.openssl.org/docs/manmaster/apps/ciphers.html for options.
 encryptionCipher: 'aes-256-cbc'
 encryptionPassword: SECRET
-
 recipheredOutputDir: null
 
 # API tokens for creating all routes except asset upload (disabled by default)
@@ -23,7 +22,7 @@ uploadsPaused: false
 
 # fileStoragePlugin: LocalFiles
 # fileStorageConfig:
-#   fileDataDirectory: files
+#   fileDataDirectory: ./assets
 
 # fileStoragePlugin: AwsS3Storage
 # fileStorageConfig:
