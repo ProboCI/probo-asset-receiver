@@ -3,20 +3,16 @@ host: 0.0.0.0
 # The port to listen on.
 port: 3000
 # The URL to redirect to when trying to hit index page.
-homeRedirect: 'https://www.probo.ci'
+homeRedirect: ''
 # The directory in which to store the LevelDB database.
 databasePlugin: LevelDB
 databaseConfig:
   databaseDataDirectory: db
-fileStoragePlugin: LocalFiles
-fileStorageConfig:
-  # The directory in which to store uploaded file assets.
-  fileDataDirectory: files
+
 # Determines the cipher used to encrypt the assets.
 # See https://www.openssl.org/docs/manmaster/apps/ciphers.html for options.
 encryptionCipher: 'aes-256-cbc'
 encryptionPassword: SECRET
-
 recipheredOutputDir: null
 
 # API tokens for creating all routes except asset upload (disabled by default)
@@ -24,11 +20,19 @@ tokens: null
 
 uploadsPaused: false
 
-## If using S3 use this template for config settings.
-#
+# fileStoragePlugin: LocalFiles
+# fileStorageConfig:
+#   fileDataDirectory: ./assets
+
 # fileStoragePlugin: AwsS3Storage
 # fileStorageConfig:
 #   awsAccessKeyId: [KEY ID FOR BUCKET]
 #   awsSecretAccessKey: [BUCKET SECRET KEY]
 #   awsBucket: [BUCKET NAME]
 
+# fileStoragePlugin: AzureBlobStorage
+# fileStorageConfig:
+#   azureEndPointSuffix: core.windows.net
+#   storageAccount: [storage account name]
+#   azureKey: [storage account key]
+#   azureContainer: [assets container]
