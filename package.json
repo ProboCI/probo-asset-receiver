@@ -16,7 +16,7 @@
     "coveralls": "^3.0.9",
     "eslint": "^7.20.0",
     "memdown": "^4.1.0",
-    "mocha": "^8.3.0",
+    "mocha": "^11.7.5",
     "mock-aws-s3": "^2.0.0",
     "mock-require": "^3.0.3",
     "should": "^13.2.3",
